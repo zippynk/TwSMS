@@ -1,7 +1,7 @@
 #TwSMS
 
 
-TwSMS is a Unix command written in Python for sending and receiving text messages via a Twilio account. It uses the Twilio Python Library (not included - it needs to be installed separately).
+TwSMS is a Unix command written in Python for sending and receiving text messages via a Twilio account. It uses the Twilio Python Library, which is licensed under the MIT License by a separate party (and is not included - it needs to be installed separately).
 
 
 #Usage
