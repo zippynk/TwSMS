@@ -20,7 +20,7 @@ sms help
 
 TwSMS is written by zippynk on bitbucket.org and is licensed under the Mozilla Public License, Version 2.0.
 
-It is available online at https://bitbucket.org/zippynk/twsms
+It is available online at https://bitbucket.org/zippynk/twsms.
 
 Official Notice:
 
