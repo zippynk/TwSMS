@@ -1,0 +1,124 @@
+#!/usr/bin/env python
+
+#  This Source Code Form is subject to the terms of the Mozilla Public
+#  License, v. 2.0. If a copy of the MPL was not distributed with this
+#  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+try:
+    from twilio.rest import TwilioRestClient
+except ImportError:
+    print "Please install the Twilio library for Python."
+import pickle
+import os
+import sys
+
+class twilioAccount():
+    def __init__(self,account,token,number):
+        self.account = account
+        self.token = token
+        self.number = number
+if len(sys.argv) == 1:
+    print """Usage:
+sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]
+sms logout
+sms send [PHONE NUMBER TO SEND TO] [MESSAGE BODY]
+sms view-messages [OPTIONAL: PHONE NUMBER TO SEE MESSAGES FOR]
+sms help
+
+You need a Twilio account to use this application.
+Written by zippynk on bitbucket.org."""
+    exit(0)
+
+
+if sys.argv[1] == 'help':
+    print """Usage:
+sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]
+sms logout
+sms send [PHONE NUMBER TO SEND TO] [MESSAGE BODY]
+sms view-messages [OPTIONAL: PHONE NUMBER TO SEE MESSAGES FOR]
+sms help
+
+You need a Twilio account to use this application.
+Written by zippynk on bitbucket.org."""
+    exit(0)
+elif sys.argv[1] == 'logout':
+    try:
+        os.remove(os.path.expanduser('~/.sms_account'))
+    except OSError:
+        print "You are not logged in. Nothing to do."
+    exit(0)
+elif sys.argv[1] == 'login':
+    try:
+        number = sys.argv[4]
+        number2 = int(number)
+    except IndexError:
+        print "Usage: 'sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]'"
+        exit(1)
+    except ValueError:
+        print "The phone number must not include dashes, parentheses, or other not-called-for symbols, and must start with a plus sign and a country code. (Example: Use +18005555555 instead of 1-(800)-555-5555.)"
+        exit(1)
+    try:
+        account = sys.argv[2]
+        token = sys.argv[3]
+    except IndexError:
+        print "Usage: 'sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]'"
+        exit(1)        
+    pickle.dump(twilioAccount(account,token,number),open(os.path.expanduser("~/.sms_account"), 'wb'))
+    exit(0)
+try:
+    myTwilioAccount = pickle.load(open(os.path.expanduser("~/.sms_account")))
+except IOError:
+    print "Account file info not found. Please run 'sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]' to login."
+    exit(1)
+
+client = TwilioRestClient(myTwilioAccount.account,myTwilioAccount.token)
+
+if sys.argv[1] == 'send':
+    try:
+        number = sys.argv[2]
+        number2 = int(number)
+    except IndexError:
+        print "Usage: 'sms send [PHONE NUMBER TO SEND TO] [MESSAGE BODY]'"
+        exit(1)
+    except ValueError:
+        print "The phone number must not include dashes, parentheses, or other not-called-for symbols, and must start with a plus sign and a country code. (Example: Use +18005555555 instead of 1-(800)-555-5555.)"
+        exit(1)
+    try:
+        message = " ".join(sys.argv[3:len(sys.argv)])
+    except IndexError:
+        print "Usage: 'sms send [PHONE NUMBER TO SEND TO] [MESSAGE BODY]'"
+        exit(1)
+    if len(message) == 0:
+        print "Usage: 'sms send [PHONE NUMBER TO SEND TO] [MESSAGE BODY]'"
+        exit(1)
+    client.sms.messages.create(to=number,from_=myTwilioAccount.number,body=message)
+    exit(0)
+elif sys.argv[1] == 'view-messages':
+    if len(sys.argv) == 2:
+        messages = client.messages.list()
+        for message in messages[::-1]:
+            if message.to==myTwilioAccount.number or message.from_==myTwilioAccount.number:
+                print str(message.from_) +", on " +str(message.date_sent) +": " +message.body
+    else:
+        try:
+            number = sys.argv[2]
+            number2 = int(number)
+        except IndexError:
+            print "Usage: 'sms view-messages [OPTIONAL: PHONE NUMBER TO SEE MESSAGES FOR]'"
+            exit(1)
+        except ValueError:
+            print "The phone number must not include dashes, parentheses, or other not-called-for symbols, and must start with a plus sign and a country code. (Example: Use +18005555555 instead of 1-(800)-555-5555.)"
+            exit(1)
+        messages = client.messages.list()
+        for message in messages[::-1]:
+            if (message.from_==number or message.to==number) and (message.to==myTwilioAccount.number or message.from_==myTwilioAccount.number):
+                print str(message.from_) +", on " +str(message.date_sent) +": " +message.body
+    exit(0)
+else:
+    print """Usage:
+sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]
+sms logout
+sms send [PHONE NUMBER TO SEND TO] [MESSAGE BODY]
+sms view-messages [OPTIONAL: PHONE NUMBER TO SEE MESSAGES FOR]
+sms help"""
+    exit(1)
