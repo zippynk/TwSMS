@@ -11,6 +11,7 @@ except ImportError:
 import pickle
 import os
 import sys
+import getpass
 
 class twilioAccount():
     def __init__(self,account,token,number):
@@ -19,7 +20,7 @@ class twilioAccount():
         self.number = number
 if len(sys.argv) == 1:
     print """Usage:
-sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]
+sms login
 sms logout
 sms send [PHONE NUMBER TO SEND TO] [MESSAGE BODY]
 sms view-messages [OPTIONAL: PHONE NUMBER TO SEE MESSAGES FOR]
@@ -32,7 +33,7 @@ Written by zippynk on bitbucket.org."""
 
 if sys.argv[1] == 'help':
     print """Usage:
-sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]
+sms login
 sms logout
 sms send [PHONE NUMBER TO SEND TO] [MESSAGE BODY]
 sms view-messages [OPTIONAL: PHONE NUMBER TO SEE MESSAGES FOR]
@@ -48,27 +49,22 @@ elif sys.argv[1] == 'logout':
         print "You are not logged in. Nothing to do."
     exit(0)
 elif sys.argv[1] == 'login':
+    if len(sys.argv) > 2:
+        print "For security reasons, login data is no longer entered via the terminal arguments."
     try:
-        number = sys.argv[4]
+        number = raw_input("Phone number? ")
         number2 = int(number)
-    except IndexError:
-        print "Usage: 'sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]'"
-        exit(1)
     except ValueError:
         print "The phone number must not include dashes, parentheses, or other not-called-for symbols, and must start with a plus sign and a country code. (Example: Use +18005555555 instead of 1-(800)-555-5555.)"
         exit(1)
-    try:
-        account = sys.argv[2]
-        token = sys.argv[3]
-    except IndexError:
-        print "Usage: 'sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]'"
-        exit(1)        
+    account = raw_input("Account SID? ")
+    token = getpass.getpass("Auth Token? ")
     pickle.dump(twilioAccount(account,token,number),open(os.path.expanduser("~/.sms_account"), 'wb'))
     exit(0)
 try:
     myTwilioAccount = pickle.load(open(os.path.expanduser("~/.sms_account")))
 except IOError:
-    print "Account file info not found. Please run 'sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]' to login."
+    print "Account file info not found. Please run 'sms login' to login."
     exit(1)
 
 client = TwilioRestClient(myTwilioAccount.account,myTwilioAccount.token)
@@ -116,7 +112,7 @@ elif sys.argv[1] == 'view-messages':
     exit(0)
 else:
     print """Usage:
-sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]
+sms login
 sms logout
 sms send [PHONE NUMBER TO SEND TO] [MESSAGE BODY]
 sms view-messages [OPTIONAL: PHONE NUMBER TO SEE MESSAGES FOR]

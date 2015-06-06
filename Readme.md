@@ -6,7 +6,7 @@ TwSMS is a Unix command written in Python for sending and receiving text message
 
 #Usage
 
-sms login [ACCOUNT SID] [AUTH TOKEN] [PHONE NUMBER]
+sms login
 
 sms logout
 
